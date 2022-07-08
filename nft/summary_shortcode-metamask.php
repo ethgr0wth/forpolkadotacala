@@ -1,6 +1,7 @@
 <?php
 //Code to work with Acala to transfer aUSD via MetaMask
 
+//glob.php is where we store our global constants (variables in large caps). You can create your own constants
 require_once('glob.php');
 
 $payment_wallet = '';
@@ -18,18 +19,9 @@ function summary_shortcode( $attr ) {
     $payment_wallet = '';
     $new_balance = 0;
     $min_payment = 0;
-    $user_id = get_current_user_id();
+    $user_id = '52'; //Enter your own user ID here
 
-    //If user is not logged in...
-    if ( $user_id == 0 ) {
-        
-        //NOTE: If this shortcode is used with widgets, widgets_init hook has priority of 1. Thus this redirection needs to be commented out or infinite redirects will occur
-        nocache_headers();  //Source: https://developer.wordpress.org/reference/functions/wp_safe_redirect/
-        wp_redirect( wp_login_url() ); 
-        exit();
-    }
-
-    $wallet_address = get_user_meta( $user_id, 'ethpress', true );
+    $wallet_address = "enter user's wallet address here";
 
     $search_criteria = array(
         'status'        => 'active',
@@ -45,9 +37,7 @@ function summary_shortcode( $attr ) {
 
     $sorting = array( 'key' => '15', 'direction' => 'DESC' );
 
-    // Get the entries. Ref: https://docs.gravityforms.com/searching-and-getting-entries-with-the-gfapi/
-    $result = GFAPI::get_entries( $form_id, $search_criteria, $sorting, null, $total_count );
-
+	//This is where you specify your data. Feel free to change below to your values.
     $contract_address = $result[0]['18'];
     $payment_wallet = $result[0]['17'];
     $new_balance = $result[0]['5'];
@@ -56,36 +46,36 @@ function summary_shortcode( $attr ) {
     if ( !empty( $result ) ) {
 
         $output .= '<div class="container">
-                        <h4 class="sub-header">' . esc_html__( 'Account Summary', 'quanto-child' ) . '</h4>';
+                        <h4 class="sub-header">' . esc_html__( 'Account Summary', 'card' ) . '</h4>';
         $output .= '<div class="table-responsive">
                         <table class="table table-striped">
                             <tbody>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__( 'Account', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__( 'Account', 'card' ) . '</td>
                                     <td class="col text-wrap wallet">' . $result[0]['1'] . '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__( 'Previous Balance', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__( 'Previous Balance', 'card' ) . '</td>
                                     <td class="col text-wrap">' . $result[0]['8'] . '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__('Payment, Credits', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__('Payment, Credits', 'card' ) . '</td>
                                     <td class="col text-wrap">' . $result[0]['11']. '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__('Purchases', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__('Purchases', 'card' ) . '</td>
                                     <td class="col text-wrap">' . $result[0]['12']. '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__('Fees Charged', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__('Fees Charged', 'card' ) . '</td>
                                     <td class="col text-wrap">' . $result[0]['13']. '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__('Interest Charged', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__('Interest Charged', 'card' ) . '</td>
                                     <td class="col text-wrap">' . $result[0]['14']. '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__('New Balance', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__('New Balance', 'card' ) . '</td>
                                     <td class="col text-wrap">' . $result[0]['5']. '</td>
                                 </tr>
                             </tbody>
@@ -96,28 +86,28 @@ function summary_shortcode( $attr ) {
         $output .= '<div class="row my-4"></div>';
         
         $output .= '<div class="container">
-                        <h4 class="sub-header">' . esc_html__( 'Payment Information', 'quanto-child' ) . '</h4>';
+                        <h4 class="sub-header">' . esc_html__( 'Payment Information', 'card' ) . '</h4>';
         $output .= '<div class="table-responsive">
                         <table class="table table-striped">
                             <tbody>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__( 'Statement Period', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__( 'Statement Period', 'card' ) . '</td>
                                     <td class="col">' . $result[0]['3'] . '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__( 'Statement Date', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__( 'Statement Date', 'card' ) . '</td>
                                     <td class="col">' . date('F j, Y', strtotime( $result[0]['15'] ) ) . '</td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__( 'New Balance', 'quanto-child' ) . '</td>
-                                    <td class="col">' . $result[0]['5'] . '<span class="px-2"></span><button type="button" class="btn btn-xs btn-outline-dark" onclick="sendPayment(\'' . $contract_address . '\', \'' . $payment_wallet . '\', \'' . $new_balance . '\');">' . esc_html__( 'Pay New Balance', 'quanto-child' ) . '</button></td>
+                                    <td class="col">' . esc_html__( 'New Balance', 'card' ) . '</td>
+                                    <td class="col">' . $result[0]['5'] . '<span class="px-2"></span><button type="button" class="btn btn-xs btn-outline-dark" onclick="sendPayment(\'' . $contract_address . '\', \'' . $payment_wallet . '\', \'' . $new_balance . '\');">' . esc_html__( 'Pay New Balance', 'card' ) . '</button></td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__( 'Minimum Payment', 'quanto-child' ) . '</td>
-                                    <td class="col">' . $result[0]['6'] . '<span class="px-2"></span><button type="button" class="btn btn-xs btn-outline-dark" onclick="sendPayment(\'' . $contract_address . '\', \'' . $payment_wallet . '\', \'' . $min_payment . '\');">' . esc_html__( 'Pay Min Payment', 'quanto-child' ) . '</button></td>
+                                    <td class="col">' . esc_html__( 'Minimum Payment', 'card' ) . '</td>
+                                    <td class="col">' . $result[0]['6'] . '<span class="px-2"></span><button type="button" class="btn btn-xs btn-outline-dark" onclick="sendPayment(\'' . $contract_address . '\', \'' . $payment_wallet . '\', \'' . $min_payment . '\');">' . esc_html__( 'Pay Min Payment', 'card' ) . '</button></td>
                                 </tr>
                                 <tr class="d-flex">
-                                    <td class="col">' . esc_html__( 'Payment Due Date', 'quanto-child' ) . '</td>
+                                    <td class="col">' . esc_html__( 'Payment Due Date', 'card' ) . '</td>
                                     <td class="col">' . date('F j, Y', strtotime( $result[0]['16'] ) ) . '</td>
                                 </tr>
                             </tbody>
@@ -126,7 +116,7 @@ function summary_shortcode( $attr ) {
         $output .= '</div>';
 
     } else {
-        $output .= '<div class="alert alert-info" role="alert">' . esc_html__( 'Sorry, your summary is not yet available', 'quanto-child' ) . '</div>';
+        $output .= '<div class="alert alert-info" role="alert">' . esc_html__( 'Sorry, your summary is not yet available', 'card' ) . '</div>';
     }
     
     ?>
@@ -136,7 +126,7 @@ function summary_shortcode( $attr ) {
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalLabel"><?php esc_html_e( 'Transfer crypto to payment wallet', 'quanto-child' ); ?></h5>
+                    <h5 class="modal-title" id="paymentModalLabel"><?php esc_html_e( 'Transfer crypto to payment wallet', 'card' ); ?></h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
@@ -145,7 +135,7 @@ function summary_shortcode( $attr ) {
                     <div class="spinner" role="status">
                     </div>
                     <div class="text-center">
-                        <?php esc_html_e( 'Please wait...', 'quanto-child' ); ?>
+                        <?php esc_html_e( 'Please wait...', 'card' ); ?>
                     </div>
                 </div>
             </div>
@@ -190,7 +180,7 @@ function summary_shortcode( $attr ) {
                 });
 
             } catch (error) {
-                alert("<?php esc_html_e( 'Please connect your wallet', 'quanto-child' ); ?>");
+                alert("<?php esc_html_e( 'Please connect your wallet', 'card' ); ?>");
 
                 //Redirect to main page if there's no wallet
                 document.location.href = "<?php echo site_url(); ?>";
@@ -256,22 +246,22 @@ function summary_shortcode( $attr ) {
                     const div = document.getElementById('payment-results');
 
                     // Change the content
-                    div.innerHTML = '<span><?php esc_html_e( 'Payment Status', 'quanto-child' ); ?>: '
-                                    + '<?php esc_html_e( 'Successful', 'quanto-child' ); ?></span>'
+                    div.innerHTML = '<span><?php esc_html_e( 'Payment Status', 'card' ); ?>: '
+                                    + '<?php esc_html_e( 'Successful', 'card' ); ?></span>'
                                     + '<div class="col-px2"></div>'
-                                    + `<span><?php esc_html_e( 'Transaction Hash', 'quanto-child' ); ?>: ${tx.hash}</span>`
+                                    + `<span><?php esc_html_e( 'Transaction Hash', 'card' ); ?>: ${tx.hash}</span>`
                                     + '<div class="col-px2"></div>'
-                                    + `<span><?php esc_html_e( 'Gas Used', 'quanto-child' ); ?>: ${gasUsed}</span>`;
+                                    + `<span><?php esc_html_e( 'Gas Used', 'card' ); ?>: ${gasUsed}</span>`;
 
                 } else {
                     //Display message if transfer failed
                     const div = document.getElementById('payment-results');
 
                     // Change the content
-                    div.innerHTML = '<span><?php esc_html_e( 'Payment Status', 'quanto-child' ); ?>: '
-                                    + '<?php esc_html_e( 'Failed', 'quanto-child' ); ?></span>'
+                    div.innerHTML = '<span><?php esc_html_e( 'Payment Status', 'card' ); ?>: '
+                                    + '<?php esc_html_e( 'Failed', 'card' ); ?></span>'
                                     + '<div class="col-px2"></div>'
-                                    + '<span><?php esc_html_e( 'Error. Please check the console log.', 'quanto-child' ); ?></span>';
+                                    + '<span><?php esc_html_e( 'Error. Please check the console log.', 'card' ); ?></span>';
                 }
 
             } catch (error) {
@@ -284,10 +274,10 @@ function summary_shortcode( $attr ) {
 
                 //Display message if transfer failed
                 const errorDiv = document.getElementById('payment-results');
-                errorDiv.innerHTML = '<span><?php esc_html_e( 'Payment Status', 'quanto-child' ); ?>: '
-                                + '<?php esc_html_e( 'Failed', 'quanto-child' ); ?></span>'
+                errorDiv.innerHTML = '<span><?php esc_html_e( 'Payment Status', 'card' ); ?>: '
+                                + '<?php esc_html_e( 'Failed', 'card' ); ?></span>'
                                 + '<div class="col-px2"></div>'
-                                + '<span><?php esc_html_e( 'Error. Please check the console log.', 'quanto-child' ); ?></span>';
+                                + '<span><?php esc_html_e( 'Error. Please check the console log.', 'card' ); ?></span>';
             }
 
             //Reset the payment pop-up. In case it appeared before
@@ -295,7 +285,7 @@ function summary_shortcode( $attr ) {
 
                 const resetDiv = document.getElementById('payment-results');
                 resetDiv.innerHTML = '<div class="spinner" role="status"></div>'
-                                + '<div class="text-center"><?php esc_html_e( 'Please wait...', 'quanto-child' ); ?>'
+                                + '<div class="text-center"><?php esc_html_e( 'Please wait...', 'card' ); ?>'
                                 + '</div>';
             });
 
