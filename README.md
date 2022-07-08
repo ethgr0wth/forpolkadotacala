@@ -1,6 +1,5 @@
 # For Polkadot / Acala Hackthon
 
-## Introduction
 This repository contains the open source portion of our entire system. The code here works like a payment plugin that connects MetaMask and Polkadot.js wallets with CryptCard payment gateway.
 
 It also contains test examples such as an NFT marketplace under "nft" folder. It includes code on how to sign using MetaMask and Polkadot wallets.
