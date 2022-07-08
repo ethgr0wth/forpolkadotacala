@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@polkadot/api": "^8.11.3",
+    "@polkadot/extension-dapp": "^0.44.1"
+  },
+  "type": "module"
+}

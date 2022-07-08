@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Quick start: Get Balance</title>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"  integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <style>
+      body {
+        margin: 60px;
+      }
+      .container {
+        width: auto;
+        max-width: 680px;
+        padding: 20px 15px;
+      }
+      .output {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+     <main role="main" class="container">
+        <h1 style="font-family: sans-serif; font-weight: 500;">Display an account balance</h1>
+        <p style="font-family: sans-serif;">Enter a development account address, then click <b>Get Balance</b>.</p>
+        
+        <input type="text" size="58" id="account_address"/>
+        <input type="button" onclick="GetBalance()" value="Get Balance">
+        <p class="output">Balance: <span id="polkadot-balance">Not Connected</span></p>
+     </main>
+     
+     <script src="https://unpkg.com/@polkadot/util/bundle-polkadot-util.js"></script>
+     <script src="https://unpkg.com/@polkadot/util-crypto/bundle-polkadot-util-crypto.js"></script>
+     <script src="https://unpkg.com/@polkadot/types/bundle-polkadot-types.js"></script>
+     <script src="https://unpkg.com/@polkadot/api/bundle-polkadot-api.js"></script>
+	 <script src="https://unpkg.com/@polkadot/extension-dapp@0.44.1/bundle-polkadot-extension-dapp.js"></script>
+     
+     <script>
+	 
+       async function GetBalance() {
+         const ADDR = '5Gb6Zfe8K8NSKrkFLCgqs8LUdk7wKweXM5pN296jVqDpdziR';
+         
+         const { WsProvider, ApiPromise } = polkadotApi;
+         const wsProvider = new WsProvider('wss://node-6870830370282213376.rz.onfinality.io/ws?apikey=0f273197-e4d5-45e2-b23e-03b015cb7000');
+         const polkadot = await ApiPromise.create({ provider: wsProvider });
+         
+         let polkadotBalance = document.getElementById("polkadot-balance");
+           const x = document.getElementById("account_address").value;
+           const { data: balance } = await polkadot.query.system.account(x);
+        
+          polkadotBalance.innerText = balance.free;
+		  
+		  //Mel
+			const { web3Accounts, web3Enable, web3FromSource, web3FromAddress } = polkadotExtensionDapp ;
+			const { stringToHex } = polkadotUtil;
+			
+			// this call fires up the authorization popup
+			const extensions = await web3Enable('Dynamic NFT marketplace');
+
+			if (extensions.length === 0) {
+				// no extension installed, or the user did not accept the authorization
+				// in this case we should inform the use and give a link to the extension
+				return;
+			}
+
+			// we are now informed that the user has at least one extension and that we
+			// will be able to show and use accounts
+			const allAccounts = await web3Accounts();
+
+			// `account` is of type InjectedAccountWithMeta 
+			// We arbitrarily select the first account returned from the above snippet
+			const account = allAccounts[0];
+			
+			// console.log("Account: " + account.address);
+			// console.log(JSON.stringify(account, null, 4));
+
+			// const injected = await web3FromSource(account.meta.source);
+
+			// const signer = injected.signer;
+
+			// if (signer.signRaw) {
+			// 	const signerResult = await signer.signRaw({
+			// 		address: account.address,
+			// 		data: stringToHex('fsdssdfsdf'),
+			// 		type: 'bytes'
+			// 	});
+
+			// 	console.log("Signature: " + signerResult.signature);
+			// }
+			
+			//Mel to send token
+			// the address we use to use for signing, as injected
+			const SENDER = account.address;
+
+			// finds an injector for an address
+			const injector = await web3FromAddress(SENDER);
+
+			  // Create a extrinsic, transferring 12345 units to Bob
+		//    const transfer = polkadot.tx.balances.transfer('5F1pZeuRNfZBxpB14NUzpAowtgZzT4BJwwRKHQB9GmZRSZuK', 100000000000);
+
+			const transfer = polkadot.tx.currencies.transfer('5F1pZeuRNfZBxpB14NUzpAowtgZzT4BJwwRKHQB9GmZRSZuK', { Token: 'AUSD' }, 100000000000);
+
+		   // Sign and send the transaction using our account
+		   const hash = await transfer.signAndSend(SENDER, { signer: injector.signer });
+
+		   console.log('Transfer sent with hash', hash.toHex());
+
+			// sign and send our transaction - notice here that the address of the account
+			// (as retrieved injected) is passed through as the param to the `signAndSend`,
+			// the API then calls the extension to present to the user and get it signed.
+			// Once complete, the api sends the tx + signature via the normal process
+		// 	const txHash = await polkadot.tx.balances
+		// 	  .transfer('5F1pZeuRNfZBxpB14NUzpAowtgZzT4BJwwRKHQB9GmZRSZuK', 100000000000)
+		// 	  .signAndSend(SENDER, { signer: injector.signer }, (status) => {
+
+		// 		console.log(status);
+
+		// 		console.log(`Current status is ${result.status}`);
+
+		// 		  if (result.status.isInBlock) {
+		// 			  console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
+		// 		  } else if (result.status.isFinalized) {
+		// 			  console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
+		// 			  unsub();
+		// 		  }
+				  
+		// 			if (status.isInBlock) {
+		// 				console.log(`Completed at block hash #${status.isInBlock}`);
+		// 			} else {
+		// 				console.log(`Current status: ${status.type}`);
+		// 			}
+
+
+		// 		}).catch((error) => {
+		// 			console.log(':( transaction failed', error);
+		// 		});
+			
+		// 	Show the hash
+		//    console.log("Submitted with hash", txHash);
+			  
+			//End
+        }  
+     </script>
+  </body>
+</html>
